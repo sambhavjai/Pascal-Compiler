@@ -100,6 +100,7 @@ public class calc1{
         while(true)
         {
         try{
+            System.out.print("calc -> ");
             String text=scn.nextLine();
             if(text.compareTo("eof")==0)
             break;
