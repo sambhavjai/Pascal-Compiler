@@ -4,6 +4,7 @@ public class calc1{
     public static String integer="INTEGER";
     public static String plus="PLUS";
     public static String eof="EOF";
+    public static String minus="MINUS";
     public static class token{
         String type;
         String value;
@@ -41,13 +42,27 @@ public class calc1{
         {
             if(pos>=text.length())
             return new token(eof,"None");
-            pos++;
-            if(text.charAt(pos-1)>='0'&&text.charAt(pos-1)<='9')
+            while(pos<text.length()&&text.charAt(pos)==' ')
             {
-                return new token(integer,""+text.charAt(pos-1));
+                pos++;
             }
-            if(text.charAt(pos-1)=='+')
-            return new token(plus,""+text.charAt(pos-1));
+            if(pos>=text.length())
+            return new token(eof,"None");
+            if(text.charAt(pos)>='0'&&text.charAt(pos)<='9')
+            {
+             String c="";
+             while(pos<text.length()&&text.charAt(pos)>='0'&&text.charAt(pos)<='9')
+             {
+                c=c+text.charAt(pos);
+                pos++;
+             }
+            return new token(integer,c);
+            }
+            if(text.charAt(pos)=='+')
+            { pos++;
+            return new token(plus,""+text.charAt(pos-1));}
+            if(text.charAt(pos)=='-'){ pos++;
+            return new token(minus,""+text.charAt(pos-1));}
             error();
             return new token("","");
         }
@@ -66,12 +81,16 @@ public class calc1{
             eat(new token(integer,"2"));
 
             token op=current_token;
-            eat(new token(plus,"+"));
+            eat(op);
 
             token right=current_token;
             eat(new token(integer,"2"));
-
-            int result=Integer.parseInt(left.value)+Integer.parseInt(right.value);
+            
+            int result=Integer.MIN_VALUE;
+            if(op.type.compareTo(plus)==0)
+            result=Integer.parseInt(left.value)+Integer.parseInt(right.value);
+            else if(op.type.compareTo(minus)==0)
+            result=Integer.parseInt(left.value)-Integer.parseInt(right.value);
             return result;
         }
     }
@@ -81,7 +100,7 @@ public class calc1{
         while(true)
         {
         try{
-            String text=scn.next();
+            String text=scn.nextLine();
             if(text.compareTo("eof")==0)
             break;
             Interpreter obj=new Interpreter(text,0,null);
