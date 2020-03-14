@@ -89,31 +89,31 @@ public class calc1{
         public int expr() throws my_exception
         {
             current_token=get_next_token();
-
+            int result=Integer.MIN_VALUE;
             token left=current_token;
             eat(new token(integer,"2"));
-
+            result=Integer.parseInt(left.value);
+            while(current_token.type.compareTo(eof)!=0)
+            {
             token op=current_token;
             eat(op);
-
             token right=current_token;
             eat(new token(integer,"2"));
-            
-            int result=Integer.MIN_VALUE;
             if(op.type.compareTo(plus)==0)
-            result=Integer.parseInt(left.value)+Integer.parseInt(right.value);
+            result=result+Integer.parseInt(right.value);
             else if(op.type.compareTo(minus)==0)
-            result=Integer.parseInt(left.value)-Integer.parseInt(right.value);
+            result=result-Integer.parseInt(right.value);
             else if(op.type.compareTo(multiply)==0)
-            result=Integer.parseInt(left.value)*Integer.parseInt(right.value);
+            result=result*Integer.parseInt(right.value);
             else if(op.type.compareTo(divide)==0)
             {
                 if(right.value.charAt(0)=='0')
                 {
                     error("/0");
                 }
-                result=Integer.parseInt(left.value)/Integer.parseInt(right.value);
+                result=result/Integer.parseInt(right.value);
             }
+        }
             return result;
         }
     }
