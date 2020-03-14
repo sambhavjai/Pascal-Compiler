@@ -5,6 +5,8 @@ public class calc1{
     public static String plus="PLUS";
     public static String eof="EOF";
     public static String minus="MINUS";
+    public static String multiply="MULTIPLY";
+    public static String divide="DIVIDE";
     public static class token{
         String type;
         String value;
@@ -34,9 +36,16 @@ public class calc1{
             this.pos=pos;
             this.current_token=curr;
         }
-        public void error() throws my_exception
+        public void error(String error) throws my_exception
         {
-            throw new my_exception("Error parsing input");
+            if(error.compareTo("input")==0)
+            {
+                throw new my_exception("Error parsing input");
+            }
+            if(error.compareTo("/0")==0)
+            {
+                throw new my_exception("Divide by 0 not possible");
+            }
         }
         public token get_next_token() throws my_exception
         {
@@ -63,7 +72,11 @@ public class calc1{
             return new token(plus,""+text.charAt(pos-1));}
             if(text.charAt(pos)=='-'){ pos++;
             return new token(minus,""+text.charAt(pos-1));}
-            error();
+            if(text.charAt(pos)=='*'){ pos++;
+            return new token(multiply,""+text.charAt(pos-1));}
+            if(text.charAt(pos)=='/'){ pos++;
+            return new token(divide,""+text.charAt(pos-1));}
+            error("input");
             return new token("","");
         }
         public void eat(token a) throws my_exception
@@ -71,7 +84,7 @@ public class calc1{
             if(current_token.type.compareTo(a.type)==0)
             current_token=get_next_token();
             else
-            error();
+            error("input");
         }
         public int expr() throws my_exception
         {
@@ -91,6 +104,16 @@ public class calc1{
             result=Integer.parseInt(left.value)+Integer.parseInt(right.value);
             else if(op.type.compareTo(minus)==0)
             result=Integer.parseInt(left.value)-Integer.parseInt(right.value);
+            else if(op.type.compareTo(multiply)==0)
+            result=Integer.parseInt(left.value)*Integer.parseInt(right.value);
+            else if(op.type.compareTo(divide)==0)
+            {
+                if(right.value.charAt(0)=='0')
+                {
+                    error("/0");
+                }
+                result=Integer.parseInt(left.value)/Integer.parseInt(right.value);
+            }
             return result;
         }
     }
