@@ -26,15 +26,90 @@ public class calc1{
             super(s);
         }
     }
-    public static class Interpreter{
+    public static class Lexer{
         String text;
         int pos;
-        token current_token;
-        public Interpreter(String text,int pos,token curr)
+        char current_char;
+        public Lexer(String text)
         {
             this.text=text;
-            this.pos=pos;
-            this.current_token=curr;
+            this.pos=0;
+            this.current_char=text.charAt(pos);
+        }
+        public void error() throws my_exception
+        {
+            throw new my_exception("Invalid character");
+        }
+        public void advance()
+        {
+            pos++;
+            if(pos>text.length()-1)
+            {
+                current_char='\0';
+            }
+            else
+            {
+                current_char=text.charAt(pos);
+            }
+        }
+        public void skip_whitespace()
+        {
+            while(current_char!='\0'&&current_char==' ')
+            {
+                advance();
+            }
+        }
+        public String integer()
+        {
+            String result="";
+            while(current_char!='\0'&&current_char>='0'&&current_char<='9')
+            {
+                result=result+current_char;
+                advance();
+            }
+            return result;
+        }
+        public token get_next_token() throws my_exception
+        {
+            while(current_char!='\0')
+            {
+                if(current_char==' ')
+                {
+                    skip_whitespace();
+                    continue;
+                }
+                if(current_char>='0'&&current_char<='9')
+                {
+                    return new token(integer,integer());
+                }
+                if(current_char=='*')
+                {
+                    return new token(multiply,"*");
+                }
+                if(current_char=='/')
+                {
+                    return new token(divide,"/");
+                }
+                if(current_char=='+')
+                {
+                    return new token(plus,"+");
+                }
+                if(current_char=='-')
+                {
+                    return new token(minus,"-");
+                }
+            }
+            error();
+            return new token(eof,"None");
+        }
+    }
+    public static class Interpreter{
+        Lexer lex;
+        token current_token;
+        public Interpreter(Lexer lex) throws my_exception
+        {
+            this.lex=lex;
+            this.current_token=lex.get_next_token();
         }
         public void error(String error) throws my_exception
         {
@@ -47,71 +122,48 @@ public class calc1{
                 throw new my_exception("Divide by 0 not possible");
             }
         }
-        public token get_next_token() throws my_exception
-        {
-            if(pos>=text.length())
-            return new token(eof,"None");
-            while(pos<text.length()&&text.charAt(pos)==' ')
-            {
-                pos++;
-            }
-            if(pos>=text.length())
-            return new token(eof,"None");
-            if(text.charAt(pos)>='0'&&text.charAt(pos)<='9')
-            {
-             String c="";
-             while(pos<text.length()&&text.charAt(pos)>='0'&&text.charAt(pos)<='9')
-             {
-                c=c+text.charAt(pos);
-                pos++;
-             }
-            return new token(integer,c);
-            }
-            if(text.charAt(pos)=='+')
-            { pos++;
-            return new token(plus,""+text.charAt(pos-1));}
-            if(text.charAt(pos)=='-'){ pos++;
-            return new token(minus,""+text.charAt(pos-1));}
-            if(text.charAt(pos)=='*'){ pos++;
-            return new token(multiply,""+text.charAt(pos-1));}
-            if(text.charAt(pos)=='/'){ pos++;
-            return new token(divide,""+text.charAt(pos-1));}
-            error("input");
-            return new token("","");
-        }
         public void eat(token a) throws my_exception
         {
             if(current_token.type.compareTo(a.type)==0)
-            current_token=get_next_token();
+            current_token=lex.get_next_token();
             else
             error("input");
         }
+        public int factor() throws my_exception
+        {
+            token temp=current_token;
+            eat(new token(integer,"2"));
+            return Integer.parseInt(temp.value);
+        }
         public int expr() throws my_exception
         {
-            current_token=get_next_token();
-            int result=Integer.MIN_VALUE;
-            token left=current_token;
-            eat(new token(integer,"2"));
-            result=Integer.parseInt(left.value);
+            int result=factor();
             while(current_token.type.compareTo(eof)!=0)
             {
             token op=current_token;
-            eat(op);
-            token right=current_token;
-            eat(new token(integer,"2"));
             if(op.type.compareTo(plus)==0)
-            result=result+Integer.parseInt(right.value);
+            {
+            eat(new token(multiply,"*"));
+            result=result+factor();
+            }
             else if(op.type.compareTo(minus)==0)
-            result=result-Integer.parseInt(right.value);
+            {
+            eat(new token(minus,"-"));
+            result=result-factor();
+            }
             else if(op.type.compareTo(multiply)==0)
-            result=result*Integer.parseInt(right.value);
+            {
+            eat(new token(multiply,"*"));
+            result=result*factor();
+            }
             else if(op.type.compareTo(divide)==0)
             {
-                if(right.value.charAt(0)=='0')
+                int right=factor();
+                if(right==0)
                 {
                     error("/0");
                 }
-                result=result/Integer.parseInt(right.value);
+                result=result/right;
             }
         }
             return result;
@@ -127,7 +179,8 @@ public class calc1{
             String text=scn.nextLine();
             if(text.compareTo("eof")==0)
             break;
-            Interpreter obj=new Interpreter(text,0,null);
+            Lexer lex=new Lexer(text);
+            Interpreter obj=new Interpreter(lex);
             int result=obj.expr();
             System.out.println(result);
         }
