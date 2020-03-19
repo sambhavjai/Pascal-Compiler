@@ -138,39 +138,48 @@ public class calc1{
 	            token temp=current_token;
 	            eat(new token(integer,"2"));
 	            return Integer.parseInt(temp.value);
-	        }
+			}
+			public int term() throws my_exception
+			{
+				int result=factor();
+				while(current_token.type.compareTo(multiply)==0||current_token.type.compareTo(divide)==0)
+				{
+					token temp=current_token;
+					if(temp.type.compareTo(multiply)==0)
+					{
+						eat(new token(multiply,"*"));
+						result=result*factor();
+					}
+					else if(temp.type.compareTo(divide)==0)
+					{
+						eat(new token(divide,"/"));
+						int right=factor();
+						if(right==0)
+						{
+							error("/0");
+						}
+						result=result/right;
+					}
+				}
+				return result;
+			}
 	        public int expr() throws my_exception
 	        {
-	            int result=factor();
-	            while(current_token.type.compareTo(eof)!=0)
+	            int result=term();
+				while(current_token.type.compareTo(plus)==0||current_token.type.compareTo(minus)==0)
 	            {
 	            token op=current_token;
 	            if(op.type.compareTo(plus)==0)
 	            {
 	            eat(new token(plus,"+"));
-	            result=result+factor();
+	            result=result+term();
 	            }
 	            else if(op.type.compareTo(minus)==0)
 	            {
 	            eat(new token(minus,"-"));
-	            result=result-factor();
+	            result=result-term();
 	            }
-	            else if(op.type.compareTo(multiply)==0)
-	            {
-	            eat(new token(multiply,"*"));
-	            result=result*factor();
-	            }
-	            else if(op.type.compareTo(divide)==0)
-	            {
-	                eat(new token(divide,"/"));
-	                int right=factor();
-	                if(right==0)
-	                {
-	                    error("/0");
-	                }
-	                result=result/right;
-	            }
-	        }
+			}
 	            return result;
 	        }
 	    }
