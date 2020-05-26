@@ -22,8 +22,8 @@ public class calc1{
 	            return "Token("+this.type+" , "+this.value+")";
 	        }
 	    }
-	    public static class my_exception extends Exception{
-	        public my_exception(String s)
+	    public static class my_exception extends Exception{  
+			public my_exception(String s)
 	        {
 	            super(s);
 	        }
