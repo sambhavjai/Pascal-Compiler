@@ -6,7 +6,9 @@ public class calc1{
 	    public static String eof="EOF";
 	    public static String minus="MINUS";
 	    public static String multiply="MULTIPLY";
-	    public static String divide="DIVIDE";
+		public static String divide="DIVIDE";
+		public static String lparen="LPAREN";
+		public static String rparen="RPAREN";
 	    public static class token{
 	        String type;
 	        String value;
@@ -78,30 +80,42 @@ public class calc1{
 	                    skip_whitespace();
 	                    continue;
 	                }
-	                if(current_char>='0'&&current_char<='9')
+	                else if(current_char>='0'&&current_char<='9')
 	                {
 	                    return new token(integer,integer());
 	                }
-	                if(current_char=='*')
+	                else if(current_char=='*')
 	                {
 	                	advance();
 	                    return new token(multiply,"*");
 	                }
-	                if(current_char=='/')
+	                else if(current_char=='/')
 	                {
 	                	advance();
 	                    return new token(divide,"/");
 	                }
-	                if(current_char=='+')
+	                else if(current_char=='+')
 	                {
 	                	advance();
 	                    return new token(plus,"+");
 	                }
-	                if(current_char=='-')
+	                else if(current_char=='-')
 	                {
 	                	advance();
 	                    return new token(minus,"-");
-	                }
+					}
+					else if(current_char=='(')
+					{
+						advance();
+						return new token(lparen,"(");
+					}
+					else if(current_char==')')
+					{
+						advance();
+						return new token(rparen,")");
+					}
+					else
+					error();
 	            }
 	            return new token(eof,"None");
 	        }
@@ -135,9 +149,21 @@ public class calc1{
 	        }
 	        public int factor() throws my_exception
 	        {
-	            token temp=current_token;
-	            eat(new token(integer,"2"));
-	            return Integer.parseInt(temp.value);
+				token temp=current_token;
+				if(current_token.type.equals(integer))
+				{
+	            	eat(new token(integer,"2"));
+					return Integer.parseInt(temp.value);
+				}
+				else if(current_token.type.equals(lparen))
+				{
+					eat(new token(lparen,"("));
+					int result=expr();
+					eat(new token(rparen,")"));
+					return result;
+				}
+				error("input");
+				return 0;
 			}
 			public int term() throws my_exception
 			{
