@@ -1,7 +1,6 @@
-package Pascal_compiler;
 import java.util.*;
 public class calc1{
-    public static String integer="INTEGER";
+	    public static String integer="INTEGER";
 	    public static String plus="PLUS";
 	    public static String eof="EOF";
 	    public static String minus="MINUS";
@@ -23,6 +22,11 @@ public class calc1{
 	        }
 	    }
 	    public static class my_exception extends Exception{  
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
+
 			public my_exception(String s)
 	        {
 	            super(s);
