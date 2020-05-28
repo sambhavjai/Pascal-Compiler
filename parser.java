@@ -19,7 +19,17 @@ public class parser{
 	    }
 	    public node factor() throws my_exception
 	    {
-	    	token curr=current_token;
+			token curr=current_token;
+			if(current_token.type.equals("plus"))
+			{
+				eat(new token("plus","+"));
+				return factor();
+			}
+			if(current_token.type.equals("minus"))
+			{
+				eat(new token("minus","-"));
+				return new node(null,curr,factor());
+			}
 	        if(current_token.type.equals("integer"))
 	        {
 	            eat(new token("integer","2"));

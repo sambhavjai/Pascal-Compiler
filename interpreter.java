@@ -27,6 +27,8 @@ public class interpreter{
             return Integer.parseInt(root.val.value);
             if(root.val.type.equals("plus"))
             return left+right;
+            else if(root.val.type.equals("minus")&&root.left==null)
+            return -1*right;
             else if(root.val.type.equals("minus"))
             return left-right;
             else if(root.val.type.equals("multiply"))
