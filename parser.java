@@ -1,3 +1,4 @@
+import java.util.*;
 public class parser{
         lexer lex;
 	    token current_token;
@@ -16,7 +17,58 @@ public class parser{
 	        current_token=lex.get_next_token();
 	        else
 	        error();
-	    }
+		}
+		public node program() throws my_exception
+		{
+			node result=compound_statement();
+			eat(new token("dot","."));
+			return result;
+		}
+		public node compound_statement() throws my_exception
+		{
+			eat(new token("BEGIN","BEGIN"));
+			ArrayList<node> result=statement_list();
+			node root=new node(null,null,null);
+			root.children=new ArrayList<>(result);
+			return root;
+		}
+		public ArrayList<node> statement_list() throws my_exception
+		{
+			node temp=statement();
+			ArrayList<node> result=new ArrayList<>();
+			result.add(temp);
+			while(current_token.type.equals("semi"))
+			{
+				eat(new token("semi",";"));
+				result.add(statement());
+			}
+			if(current_token.type.equals("id"))
+			error();
+			return result;
+		}
+		public node statement() throws my_exception
+		{
+			if(current_token.type.equals("BEGIN"))
+			return compound_statement();
+			else if(current_token.type.equals("id"))
+			return assignment_statement();
+			else
+			return null;
+		}
+		public node assignment_statement() throws my_exception
+		{
+			node left=variable();
+			token curr=current_token;
+			eat(new token("assign",":="));
+			node right=expr();
+			return new node(left,curr,right);
+		}
+		public node variable() throws my_exception
+		{
+			node ans=new node(null,current_token,null);
+			eat(new token("id","var"));
+			return ans;
+		}
 	    public node factor() throws my_exception
 	    {
 			token curr=current_token;
@@ -41,9 +93,17 @@ public class parser{
 	            node ans=expr();
 	            eat(new token("rparen",")"));
 	            return ans;
-	        }
-	        return null;
-	    }
+			}
+			else
+			return variable();
+		}
+		public node parse() throws my_exception
+		{
+			node ans=program();
+			if(!current_token.type.equals("eof"))
+			error();
+			return ans;
+		}
 	    public node term() throws my_exception
 	    {
 	        node ans=factor();

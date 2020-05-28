@@ -1,12 +1,17 @@
+import java.util.*;
 public class lexer{
     String text;
     int pos;
     char current_char;
+    HashMap<String,token> reserved_keywords;
     public lexer(String text)
     {
         this.text=text;
         pos=0;
         current_char=text.charAt(pos);
+        reserved_keywords=new HashMap<>();
+        reserved_keywords.put("BEGIN",new token("BEGIN","BEGIN"));
+        reserved_keywords.put("END",new token("END","END"));
     }
     public void advance()
     {
@@ -32,6 +37,25 @@ public class lexer{
             advance();
         }
         return ans;
+    }
+    public char peek()
+    {
+        if(pos+1==text.length())
+        return '\0';
+        else
+        return text.charAt(pos+1);
+    }
+    public token id()
+    {
+        String result="";
+        while(current_char!='\0'&&Character.isLetterOrDigit(current_char))
+        {
+            result=result+current_char;
+            advance();
+        }
+        if(reserved_keywords.containsKey(result))
+        return reserved_keywords.get(result);
+        return new token("id",result);
     }
     public token get_next_token() throws my_exception
     {
@@ -75,7 +99,27 @@ public class lexer{
 			{
 				advance();
 				return new token("rparen",")");
-			}
+            }
+            else if(Character.isLetterOrDigit(current_char))
+            {
+                return id();
+            }
+            else if(current_char==':'&&peek()=='=')
+            {
+                advance();
+                advance();
+                return new token("assign",":=");
+            }
+            else if(current_char==';')
+            {
+                advance();
+                return new token("semi",";");
+            }
+            else if(current_char=='.')
+            {
+                advance();
+                return new token("dot",".");
+            }
 			else
 			error();
 	    }
