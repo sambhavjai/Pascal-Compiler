@@ -28,6 +28,7 @@ public class parser{
 		{
 			eat(new token("BEGIN","BEGIN"));
 			ArrayList<node> result=statement_list();
+			eat(new token("END","END"));
 			node root=new node(null,null,null);
 			root.children=new ArrayList<>(result);
 			return root;
@@ -40,7 +41,9 @@ public class parser{
 			while(current_token.type.equals("semi"))
 			{
 				eat(new token("semi",";"));
-				result.add(statement());
+				node z=statement();
+				if(z!=null)
+				result.add(z);
 			}
 			if(current_token.type.equals("id"))
 			error();
