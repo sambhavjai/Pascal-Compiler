@@ -1,4 +1,6 @@
+import java.util.*;
 public class interpreter{
+    static HashMap<String,Integer> gat=new HashMap<>(); // global assignment table
     parser obj;
     int result;
     public interpreter(parser obj) throws my_exception
@@ -6,17 +8,51 @@ public class interpreter{
         this.obj=obj;
         result=0;
     }
-    public int interpret() throws my_exception
+    public void interpret() throws my_exception
     {
         node tree=obj.parse();
-        int ans=0;
-        if(tree.val.type.equals("integer"))
-        ans=visit_integer(tree);
-        else if(tree.val.type.equals("plus")||(tree.val.type.equals("minus")&&tree.left!=null)||tree.val.type.equals("multiply")||tree.val.type.equals("divide"))
-        ans=visit_binop(tree);
-        else if(tree.val.type.equals("minus")&&tree.left==null)
-        ans=visit_unminus(tree);
-        return ans;
+        visit_compound(tree);
+    }
+    public void visit_compound(node tree) throws my_exception
+    {
+        for(int i=0;i<tree.children.size();i++)
+        {
+            if(tree.children.get(i).val==null)
+            {
+                visit_compound(tree.children.get(i));
+            }
+            else if(tree.children.get(i).val.type.equals("assign"))
+            {
+                visit_assign(tree.children.get(i));
+            }
+        }
+    }
+    public void visit_assign(node tree) throws my_exception
+    {
+        String var_name=tree.left.val.value;
+        int var_value=Integer.MIN_VALUE;
+        if(tree.right.val.type.equals("minus")&&tree.right.left==null)
+        var_value=visit_unminus(tree.right);
+        else if(tree.right.val.type.equals("plus")||(tree.right.val.type.equals("minus")&&tree.right.left!=null)||tree.right.val.type.equals("multiply")||tree.right.val.type.equals("divide"))
+        var_value=visit_binop(tree.right);
+        else if(tree.right.val.type.equals("integer"))
+        var_value=visit_integer(tree.right);
+        else if(tree.right.val.type.equals("id"))
+        var_value=visit_var(tree.right);
+        gat.put(var_name,var_value);
+    }
+    public int visit_var(node tree) throws my_exception
+    {
+        if(!gat.containsKey(tree.val.value))
+        {
+        error("v");
+        return 0;
+        }
+        else
+        {
+            int ans=gat.get(tree.val.value);
+            return ans;
+        }
     }
     public int visit_unminus(node tree) throws my_exception
     {
@@ -27,6 +63,8 @@ public class interpreter{
         ans=visit_binop(tree.right);
         else if(tree.right.val.type.equals("minus")&&tree.right.left==null)
         ans=visit_unminus(tree.right);
+        else if(tree.right.val.type.equals("id"))
+        ans=visit_var(tree.right);
         return -1*ans;
     }
     public int visit_binop(node tree) throws my_exception
@@ -40,6 +78,8 @@ public class interpreter{
             left=visit_binop(tree.left);
             else if(tree.left.val.type.equals("minus")&&tree.left.left==null)
             left=visit_unminus(tree.left);
+            else if(tree.left.val.type.equals("id"))
+            left=visit_var(tree.left);
             int right=0;
             if(tree.right.val.type.equals("integer"))
             right=visit_integer(tree.right);
@@ -47,6 +87,8 @@ public class interpreter{
             right=visit_binop(tree.right);
             else if(tree.right.val.type.equals("minus")&&tree.right.left==null)
             right=visit_unminus(tree.right);
+            else if(tree.right.val.type.equals("id"))
+            right=visit_var(tree.right);
             return left+right;
         }
         else if(tree.val.type.equals("minus"))
@@ -58,6 +100,8 @@ public class interpreter{
             left=visit_binop(tree.left);
             else if(tree.left.val.type.equals("minus")&&tree.left.left==null)
             left=visit_unminus(tree.left);
+            else if(tree.left.val.type.equals("id"))
+            left=visit_var(tree.left);
             int right=0;
             if(tree.right.val.type.equals("integer"))
             right=visit_integer(tree.right);
@@ -65,6 +109,8 @@ public class interpreter{
             right=visit_binop(tree.right);
             else if(tree.right.val.type.equals("minus")&&tree.right.left==null)
             right=visit_unminus(tree.right);
+            else if(tree.right.val.type.equals("id"))
+            right=visit_var(tree.right);
             return left-right;
         }
         else if(tree.val.type.equals("multiply"))
@@ -76,6 +122,8 @@ public class interpreter{
             left=visit_binop(tree.left);
             else if(tree.left.val.type.equals("minus")&&tree.left.left==null)
             left=visit_unminus(tree.left);
+            else if(tree.left.val.type.equals("id"))
+            left=visit_var(tree.left);
             int right=0;
             if(tree.right.val.type.equals("integer"))
             right=visit_integer(tree.right);
@@ -83,6 +131,8 @@ public class interpreter{
             right=visit_binop(tree.right);
             else if(tree.right.val.type.equals("minus")&&tree.right.left==null)
             right=visit_unminus(tree.right);
+            else if(tree.right.val.type.equals("id"))
+            right=visit_var(tree.right);
             return left*right;
         }
         else if(tree.val.type.equals("divide"))
@@ -94,6 +144,8 @@ public class interpreter{
             left=visit_binop(tree.left);
             else if(tree.left.val.type.equals("minus")&&tree.left.left==null)
             left=visit_unminus(tree.left);
+            else if(tree.left.val.type.equals("id"))
+            left=visit_var(tree.left);
             int right=0;
             if(tree.right.val.type.equals("integer"))
             right=visit_integer(tree.right);
@@ -101,8 +153,10 @@ public class interpreter{
             right=visit_binop(tree.right);
             else if(tree.right.val.type.equals("minus")&&tree.right.left==null)
             right=visit_unminus(tree.right);
+            else if(tree.right.val.type.equals("id"))
+            right=visit_var(tree.right);
             if(right==0)
-            error();
+            error("0");
             return left/right;
         }
         return 0;
@@ -111,36 +165,11 @@ public class interpreter{
     { 
         return Integer.parseInt(tree.val.value);
     }
-    public void error() throws my_exception
+    public void error(String e) throws my_exception
     {
+        if(e.equals("0"))
         throw new my_exception("Divide by 0 not possible");
+        else if(e.equals("v"))
+        throw new my_exception("Variable not found");
     }
-    // public void postorder(node root) throws my_exception
-    // {
-    //     if(root==null)
-    //         return;
-    //         postorder(root.left);
-    //         postorder(root.right);
-    //         if(root.val.type.equals("integer"))
-    //         return Integer.parseInt(root.val.value);
-    //         else if(root.val.type.equals("plus"))
-    //         return left+right;
-    //         else if(root.val.type.equals("minus")&&root.left==null)
-    //         return -1*right;
-    //         else if(root.val.type.equals("minus"))
-    //         return left-right;
-    //         else if(root.val.type.equals("multiply"))
-    //         return left*right;
-    //         else if(root.val.type.equals("divide"))
-    //         {
-    //             if(right==0)
-    //             error();
-    //             return left/right;
-    //         }
-    //         else if(root.children!=null)
-    //         {
-
-    //         }
-    //         return 0;
-    // }
 }
