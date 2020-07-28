@@ -1,26 +1,18 @@
-import java.util.Scanner;
 public class index{
-    public static void main(String args[])
+    public static void main(String args[]) throws Exception
     {
-        Scanner scn=new Scanner(System.in);
-        while(true)
-	        {
+		// String filename="C:\\Users\\SAMBHAV JAIN\\SAM\\Compiler\\Pascal_compiler\\input.txt";
+		// String data=new String(Files.readAllBytes(Paths.get(filename)));
+		String data="BEGIN BEGIN number := 2; a := number; b := 10 * a + 10 * number / 4; c := a - - b; END; x := 11; END.";
 	        try{
-	            System.out.print("calc -> ");
-	            String text=scn.nextLine();
-	            if(text.compareTo("eof")==0)
-	            break;
-                lexer lex=new lexer(text);
+                lexer lex=new lexer(data);
                 parser parse=new parser(lex);
 	            interpreter obj=new interpreter(parse);
-	            int result=obj.calculate();
-	            System.out.println(result);
+	            obj.interpret();
 	        }
 	        catch(my_exception e)
 	        {
 	            System.out.println(e.getMessage());
-	        }
-	    }
-	        scn.close();
+			}
     }
 }
